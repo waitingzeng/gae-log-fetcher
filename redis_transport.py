@@ -65,7 +65,7 @@ class BaseTransport(object):
         timestamp = self.get_timestamp(**kwargs)
         #print timestamp, line
         return self._formatters[formatter]({
-            '@source': 'file://{0}{1}'.format(self._current_host, filename),
+            '@source': 'file://{1}'.format(filename),
             '@type': kwargs.get('type'),
             '@tags': kwargs.get('tags'),
             '@fields': kwargs.get('fields'),

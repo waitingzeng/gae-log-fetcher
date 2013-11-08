@@ -175,17 +175,20 @@ class GAEFetchLog(object):
 
                     logger.debug("Retrieved - %s" % req_log.combined)
 
+                    lines.append(self._prepare_json(req_log))
+
                     i = i + 1
                     if i % 100 == 0:
                         logger.info("Fetched %d req logs so far" % i)
+                        self.redis_transports.callback(dest, lines)
+                        lines = []
 
-                    lines.append(self._prepare_json(req_log))
-
-                    offset = req_log.offset
                     # end fetch
                 if lines:
-                    logger.info("Save to redis %s", len(lines))
                     self.redis_transports.callback(dest, lines)
+        
+                logger.info("Save to redis %s", i)
+                    
                 # end interval
         except:
             logger.exception("Something went wrong")
