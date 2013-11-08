@@ -13,7 +13,7 @@ class TransportException(Exception):
 
 class BaseTransport(object):
 
-    def __init__(self, hostname, format=None, logger=None):
+    def __init__(self, hostname, format='raw', logger=None):
         """Generic transport configuration
         Will attach the file_config object, setup the
         current hostname, and ensure we have a proper
@@ -26,7 +26,7 @@ class BaseTransport(object):
         self._logger = logger
 
         def raw_formatter(data):
-            return data['@message']
+            return json.dumps(data)#data['@message']
 
         def rawjson_formatter(data):
             json_data = json.loads(data['@message'])
@@ -60,6 +60,7 @@ class BaseTransport(object):
         if formatter not in self._formatters:
             formatter = self._default_formatter
 
+        timestamp = self.get_timestamp(**kwargs)
         return self._formatters[formatter]({
             '@source': 'file://{0}{1}'.format(self._current_host, filename),
             '@type': kwargs.get('type'),
@@ -149,14 +150,12 @@ class RedisTransport(BaseTransport):
         return False
 
     def callback(self, filename, lines, **kwargs):
-        timestamp = self.get_timestamp(**kwargs)
-        if kwargs.get('timestamp', False):
-            del kwargs['timestamp']
-
         for line in lines:
+            msg = self.format(filename, **line)
+            print msg
             self._pipeline.rpush(
                 self._redis_namespace,
-                self.format(filename, line, timestamp, **kwargs)
+                msg
             )
 
         try:

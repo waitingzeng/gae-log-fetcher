@@ -96,21 +96,21 @@ class GAEFetchLog(object):
         self.redis_urls = redis_urls
         self.redis_namespace = redis_namespace
         self.version_ids = ['1']
-        self.redis_transports = RedisTransports(redis_namespace, self.redis_urls, hostname='%s.appspot.com' % app_name, format='raw', logger=logger)
+        self.redis_transports = RedisTransports(redis_namespace,  self.redis_urls, hostname='%s.appspot.com' % app_name, format='raw', logger=logger)
 
     def _prepare_json(self, req_log):
         """Prepare JSON in logstash json_event format"""
-        data = {}
-        data['response'] = req_log.status
-        data['latency_ms'] = req_log.latency
-        data['tag'] = ['gae']
+        data = {'fields': {}}
         data['type'] = '%s-gae' % self.app_name
-
+        data['tag'] = ['gae']
+        data['fields']['response'] = req_log.status
+        data['fields']['latency_ms'] = req_log.latency
+        
         # Timestamp - this helps if events are not coming in chronological
         # order
         t = datetime.fromtimestamp(req_log.end_time)
         t = t.replace(tzinfo=GAE_TZ)
-        data['@timestamp'] = t.isoformat()
+        data['timestamp'] = t.isoformat()
 
         # processing APP Logs
         msg = req_log.combined
@@ -126,16 +126,16 @@ class GAEFetchLog(object):
             # The new lines give it more readability in Kibana
             msg = msg + "\n\n" + "\n".join(app_log_msgs)
 
-        data['@message'] = msg
+        data['line'] = msg
 
-        return json.dumps(data, encoding=ENCODING)
+        return data
 
     def fetch_logs(self, time_period):
         f = lambda: (self.username, self.password)
 
         try:
             remote_api_stub.ConfigureRemoteApi(
-                None, '/remote_api', f, self.app_name)
+                None, '/remote_api', f, self.app_name + '.appspot.com')
         except ConfigurationError:
             # Token expired?
             logger.exception(
