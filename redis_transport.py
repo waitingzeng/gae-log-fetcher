@@ -152,7 +152,6 @@ class RedisTransport(BaseTransport):
     def callback(self, filename, lines, **kwargs):
         for line in lines:
             msg = self.format(filename, **line)
-            print msg
             self._pipeline.rpush(
                 self._redis_namespace,
                 msg
