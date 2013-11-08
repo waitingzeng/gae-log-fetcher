@@ -101,8 +101,8 @@ class GAEFetchLog(object):
     def _prepare_json(self, req_log):
         """Prepare JSON in logstash json_event format"""
         data = {'fields': {}}
-        data['type'] = '%s-gae' % self.app_name
-        data['tag'] = ['gae']
+        data['type'] = '%s-gae-test' % self.app_name
+        data['tags'] = ['gae']
         data['fields']['response'] = req_log.status
         data['fields']['latency_ms'] = req_log.latency
         
