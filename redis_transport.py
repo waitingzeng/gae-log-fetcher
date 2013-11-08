@@ -56,13 +56,14 @@ class BaseTransport(object):
         """Processes a set of lines for a filename"""
         return True
 
-    def format(self, filename, line, timestamp, **kwargs):
+    def format(self, filename, line, **kwargs):
         """Returns a formatted log line"""
         formatter = kwargs.pop('format', self._default_formatter)
         if formatter not in self._formatters:
             formatter = self._default_formatter
 
         timestamp = self.get_timestamp(**kwargs)
+        print timestamp
         return self._formatters[formatter]({
             '@source': 'file://{0}{1}'.format(self._current_host, filename),
             '@type': kwargs.get('type'),
@@ -79,8 +80,6 @@ class BaseTransport(object):
         timestamp = kwargs.get('timestamp')
         if not timestamp:
             timestamp = datetime.datetime.utcnow().isoformat() + 'Z'
-        else:
-            timestamp = datetime.datetime.utcfromtimestamp(timestamp).isoformat() + 'Z'
         return timestamp
 
     def interrupt(self):
