@@ -55,9 +55,11 @@ def _get_level(level):
     return "UNKNOWN"
 
 
-def get_time_period(start_timestamp):
-    end = start_timestamp - PERIOD_END_NOW
-    start = end - PERIOD_LENGTH
+def get_time_period(start=None, end=None):
+    if not end:
+        end = int(time.time()) - PERIOD_END_NOW
+    if not start:
+        start = end - PERIOD_LENGTH
 
     start_human = datetime.fromtimestamp(start, tz=GAE_TZ)
     end_human = datetime.fromtimestamp(end, tz=GAE_TZ)
@@ -101,7 +103,7 @@ class GAEFetchLog(object):
     def _prepare_json(self, req_log):
         """Prepare JSON in logstash json_event format"""
         data = {'fields': {}}
-        data['type'] = '%s-gae-test' % self.app_name
+        data['type'] = '%s-gae' % self.app_name
         data['tags'] = ['gae']
         data['fields']['response'] = req_log.status
         data['fields']['latency_ms'] = req_log.latency
@@ -206,6 +208,9 @@ if __name__ == '__main__':
     parser.add_argument("--start_timestamp",
                         help="default is now")
 
+    parser.add_argument("--end_timestamp",
+                        help="default is now")
+
     parser.add_argument("--gae_config",
                         help="Config file for GAE user, pass, app. If not specified, it looks for fetcher.conf")
 
@@ -226,7 +231,8 @@ if __name__ == '__main__':
     redis_namespace = config.get('REDIS', 'namespace')
 
     redis_urls = redis_urls.split(',')
-    start_timestamp = args.start_timestamp and int(args.start_timestamp) or int(time.time())
+    start_timestamp = args.start_timestamp and int(args.start_timestamp) or None
+    end_timestamp = args.end_timestamp  and int(args.end_timestamp) or None
 
     gae_fetch_app = GAEFetchLog(username, password, app_name, redis_namespace, redis_urls)
-    gae_fetch_app.fetch_logs(get_time_period(start_timestamp))
+    gae_fetch_app.fetch_logs(get_time_period(start_timestamp, end_timestamp))
