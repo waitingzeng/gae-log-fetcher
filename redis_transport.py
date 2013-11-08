@@ -6,6 +6,8 @@ import traceback
 import time
 import urlparse
 import random
+ENCODING = "ISO-8859-1"
+
 
 
 class TransportException(Exception):
@@ -26,7 +28,7 @@ class BaseTransport(object):
         self._logger = logger
 
         def raw_formatter(data):
-            return json.dumps(data)#data['@message']
+            return json.dumps(data, encoding=ENCODING)#data['@message']
 
         def rawjson_formatter(data):
             json_data = json.loads(data['@message'])
@@ -77,7 +79,8 @@ class BaseTransport(object):
         timestamp = kwargs.get('timestamp')
         if not timestamp:
             timestamp = datetime.datetime.utcnow().isoformat() + 'Z'
-
+        else:
+            timestamp = datetime.datetime.utcfromtimestamp(timestamp).isoformat() + 'Z'
         return timestamp
 
     def interrupt(self):
