@@ -167,10 +167,10 @@ class RedisTransport(BaseTransport):
 
 
 class RedisTransports(object):
-    def __init__(self, redis_urls, hostname, format=None, logger=None):
+    def __init__(self, redis_namespace, redis_urls, hostname, format=None, logger=None):
         self._trans = []
         for redis_url in redis_urls:
-            self._trans.append(RedisTransport(redis_url, hostname, format, logger))
+            self._trans.append(RedisTransport(redis_namespace, redis_url, hostname, format, logger))
 
     def callback(self, *args, **kwargs):
         trans = random.choice(self._trans)

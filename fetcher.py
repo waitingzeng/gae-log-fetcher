@@ -96,8 +96,7 @@ class GAEFetchLog(object):
         self.redis_urls = redis_urls
         self.redis_namespace = redis_namespace
         self.version_ids = ['1']
-        self.redis_transports = RedisTransports( redis_namespace,
-            self.redis_urls, hostname='%s.appspot.com' % app_name, format='raw', logger=logger)
+        self.redis_transports = RedisTransports(redis_namespace, self.redis_urls, hostname='%s.appspot.com' % app_name, format='raw', logger=logger)
 
     def _prepare_json(self, req_log):
         """Prepare JSON in logstash json_event format"""
