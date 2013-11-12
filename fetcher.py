@@ -56,37 +56,30 @@ def _get_level(level):
 
 
 def get_time_period(start=None, end=None):
-    if not end:
-        end = int(time.time()) - PERIOD_END_NOW
     if not start:
-        start = end - PERIOD_LENGTH
+        start = int(time.time()) - PERIOD_END_NOW - PERIOD_LENGTH
 
     start_human = datetime.fromtimestamp(start, tz=GAE_TZ)
-    end_human = datetime.fromtimestamp(end, tz=GAE_TZ)
+    end_human = end and datetime.fromtimestamp(end, tz=GAE_TZ) or 'forever'
 
     return {'start': start, 'end': end, 'start_human': start_human, 'end_human': end_human}
 
 
-def _split_time_period(start, end, interval_s=10):
+def _split_time_period(start, end=None, interval_s=10):
     """
         Splits given time_period in segments based on interval
         and returns a list of tuples [(start,end),...]
 
         Uses seconds since epoch
     """
-    r = range(start, end, interval_s)
-    segments = []
-    for s in r:
-        e = s + interval_s
-        if e > end:
-            e = end
-        segment = (s, e)
-        segments.append(segment)
+    while not end or start < end:
+        yield (start, start + interval_s)
+        start = start + interval_s
+        until_end = int(time.time()) - PERIOD_END_NOW
+        if start >= until_end:
+            logger.info("start %s is limit to now %s, sleep some time", start, until_end)
+            time.sleep(2 * interval_s)
 
-    logger.debug("Splitted %s:%s into %d segments - %s" %
-                 (start, end, len(segments), segments))
-
-    return segments
 
 
 class GAEFetchLog(object):

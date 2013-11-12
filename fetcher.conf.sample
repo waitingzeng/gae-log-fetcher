@@ -3,3 +3,6 @@ username = gupta@gmail.com
 password = _password_
 app_name = trigger-app.appspot.com
 
+[REDIS]
+redis_urls = redis://127.0.0.1:6379
+namespace = easilydo_logs
