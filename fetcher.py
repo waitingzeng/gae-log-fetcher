@@ -173,6 +173,7 @@ class GAEFetchLog(object):
                     i = i + 1
                     if i % 100 == 0:
                         logger.info("Fetched %d req logs so far" % i)
+                        
                         self.redis_transports.callback(dest, lines)
                         lines = []
 
