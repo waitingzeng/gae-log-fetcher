@@ -1,6 +1,7 @@
 import signal
 import sys
 import time
+import os
 
 import logging
 import ConfigParser
@@ -80,7 +81,10 @@ def _split_time_period(start, end=None, interval_s=10):
             logger.info("start %s is limit to now %s, sleep some time", start, until_end)
             time.sleep(2 * interval_s)
 
-
+def save_recovery_log(timestamp):
+    a = file(RECOVERY_LOG, 'w')
+    a.write(str(timestamp))
+    a.close()
 
 class GAEFetchLog(object):
 
@@ -157,6 +161,7 @@ class GAEFetchLog(object):
                 start, end = interval
                 logger.info("Interval : %s - %s" % (start, end))
 
+                save_recovery_log(start)
                 lines = []
                 offset = None
                 for req_log in logservice.fetch(end_time=end,
@@ -173,16 +178,13 @@ class GAEFetchLog(object):
                     i = i + 1
                     if i % 100 == 0:
                         logger.info("Fetched %d req logs so far" % i)
-                        
-                        self.redis_transports.callback(dest, lines)
-                        lines = []
 
                     # end fetch
                 if lines:
                     self.redis_transports.callback(dest, lines)
-        
-                logger.info("Save to redis %s", i)
-                    
+                    lines = []
+
+                logger.info("Save to redis %s", len(lines))
                 # end interval
         except:
             logger.exception("Something went wrong")
@@ -230,6 +232,12 @@ if __name__ == '__main__':
     redis_urls = redis_urls.split(',')
     start_timestamp = args.start_timestamp and int(args.start_timestamp) or None
     end_timestamp = args.end_timestamp  and int(args.end_timestamp) or None
+    if not start_timestamp:
+        if os.path.exists(RECOVERY_LOG):
+            try:
+                start_timestamp = int(file(RECOVERY_LOG).read())
+            except:
+                pass
 
     gae_fetch_app = GAEFetchLog(username, password, app_name, redis_namespace, redis_urls)
     gae_fetch_app.fetch_logs(get_time_period(start_timestamp, end_timestamp))
