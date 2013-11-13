@@ -104,6 +104,7 @@ class GAEFetchLog(object):
         data['tags'] = ['gae']
         data['fields']['response'] = req_log.status
         data['fields']['latency_ms'] = req_log.latency
+        data['fields']['timestamp'] = req_log.end_time
         
         # Timestamp - this helps if events are not coming in chronological
         # order
