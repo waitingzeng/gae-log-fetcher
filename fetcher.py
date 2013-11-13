@@ -182,7 +182,6 @@ class GAEFetchLog(object):
                     # end fetch
                 if lines:
                     self.redis_transports.callback(dest, lines)
-                    lines = []
 
                 logger.info("Save to redis %s", len(lines))
                 # end interval
