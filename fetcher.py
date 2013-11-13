@@ -130,7 +130,7 @@ class GAEFetchLog(object):
 
         return data
 
-    def fetch_logs(self, time_period):
+    def fetch_logs(self, time_period, save_to_file=False):
         f = lambda: (self.username, self.password)
 
         try:
@@ -185,6 +185,11 @@ class GAEFetchLog(object):
                 if lines:
                     self.redis_transports.callback(dest, lines)
 
+                if save_to_file:
+                    f = file(dest, 'a')
+                    f.write('\n'.join([x['line'] for x in lines]))
+                    f.close()
+
                 logger.info("Save to redis %s", len(lines))
                 # end interval
         except:
@@ -210,6 +215,9 @@ if __name__ == '__main__':
 
     parser.add_argument("--end_timestamp",
                         help="default is now")
+
+    parser.add_argument("--save_to_file",
+                        help="only save to file", action='store_true')
 
     parser.add_argument("--gae_config",
                         help="Config file for GAE user, pass, app. If not specified, it looks for fetcher.conf")
@@ -241,4 +249,4 @@ if __name__ == '__main__':
                 pass
 
     gae_fetch_app = GAEFetchLog(username, password, app_name, redis_namespace, redis_urls)
-    gae_fetch_app.fetch_logs(get_time_period(start_timestamp, end_timestamp))
+    gae_fetch_app.fetch_logs(get_time_period(start_timestamp, end_timestamp), save_to_file=args.save_to_file)
