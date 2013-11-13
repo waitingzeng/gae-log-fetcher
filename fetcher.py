@@ -161,7 +161,7 @@ class GAEFetchLog(object):
                 start, end, start_human = interval
                 dest = '%s-%s.log' % (app_name, start_human.strftime('%Y-%m-%d'))
 
-                logger.info("Interval : %s - %s" % (start, end))
+                logger.info("Interval : %s - %s %s" % (start, end, start_human))
 
                 save_recovery_log(start)
                 lines = []
