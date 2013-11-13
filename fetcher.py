@@ -186,7 +186,7 @@ class GAEFetchLog(object):
                     self.redis_transports.callback(dest, lines)
 
                 if save_to_file:
-                    f = file(dest, 'a')
+                    f = file(os.path.join(save_to_file, dest), 'a')
                     f.write('\n'.join([x['line'] for x in lines]))
                     f.close()
 
@@ -217,7 +217,7 @@ if __name__ == '__main__':
                         help="default is now")
 
     parser.add_argument("--save_to_file",
-                        help="only save to file", action='store_true')
+                        help="only save to file")
 
     parser.add_argument("--gae_config",
                         help="Config file for GAE user, pass, app. If not specified, it looks for fetcher.conf")
