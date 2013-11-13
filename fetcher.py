@@ -74,7 +74,7 @@ def _split_time_period(start, end=None, interval_s=10):
         Uses seconds since epoch
     """
     while not end or start < end:
-        yield (start, start + interval_s)
+        yield start, start + interval_s, datetime.fromtimestamp(start, tz=GAE_TZ)
         start = start + interval_s
         until_end = int(time.time()) - PERIOD_END_NOW
         if start >= until_end:
@@ -154,11 +154,12 @@ class GAEFetchLog(object):
         intervals = _split_time_period(start, end)
 
         i = 0
-        dest = '%s-%s.log' % (app_name, start_human.strftime('%Y-%m-%d'))
-
+        
         try:
             for interval in intervals:
-                start, end = interval
+                start, end, start_human = interval
+                dest = '%s-%s.log' % (app_name, start_human.strftime('%Y-%m-%d'))
+
                 logger.info("Interval : %s - %s" % (start, end))
 
                 save_recovery_log(start)
