@@ -79,6 +79,7 @@ class BaseTransport(object):
         """Retrieves the timestamp for a given set of data"""
         timestamp = kwargs.get('timestamp')
         if not timestamp:
+            self._logger.info("Not timestamp provider, use utcnow")
             timestamp = datetime.datetime.utcnow().isoformat() + 'Z'
         return timestamp
 

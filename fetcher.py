@@ -156,8 +156,9 @@ class GAEFetchLog(object):
 
         i = 0
         
-        try:
-            for interval in intervals:
+        
+        for interval in intervals:
+            try:
                 start, end, start_human = interval
                 dest = '%s-%s.log' % (app_name, start_human.strftime('%Y-%m-%d'))
 
@@ -192,8 +193,9 @@ class GAEFetchLog(object):
 
                 logger.info("Save to redis %s", len(lines))
                 # end interval
-        except:
-            logger.exception("Something went wrong")
+            except:
+                logger.exception("Something went wrong")
+                continue
 
         logger.info("Retrieved %d logs. Done." % i)
 
