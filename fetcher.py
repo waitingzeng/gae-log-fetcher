@@ -21,6 +21,7 @@ import base64
 import argparse
 from redis_transport import RedisTransports
 
+import os.path as osp
 
 RECOVERY_LOG = '/tmp/recovery.log'
 
@@ -231,7 +232,7 @@ if __name__ == '__main__':
     # getting app name & credentials from a file
     conf = args.gae_config or 'fetcher.conf'
 
-    RECOVERY_LOG = '%s_%s' % (RECOVERY_LOG, conf)
+    RECOVERY_LOG = '%s_%s' % (RECOVERY_LOG, osp.basename(conf))
 
     config = ConfigParser.SafeConfigParser()
     config.read(conf)
