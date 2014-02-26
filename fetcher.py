@@ -194,7 +194,7 @@ class GAEFetchLog(object):
                 logger.info("Save to redis %s", len(lines))
                 # end interval
             except:
-                logger.exception("Something went wrong")
+                logger.error("Something went wrong", exc_info=True)
                 continue
 
         logger.info("Retrieved %d logs. Done." % i)
@@ -230,6 +230,8 @@ if __name__ == '__main__':
 
     # getting app name & credentials from a file
     conf = args.gae_config or 'fetcher.conf'
+
+    RECOVERY_LOG = '%s_%s' % (RECOVERY_LOG, conf)
 
     config = ConfigParser.SafeConfigParser()
     config.read(conf)
