@@ -205,8 +205,10 @@ class RedisTransport(BaseTransport):
         s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         for line in lines:
             msg = self.format(filename, format="logcenter", **line)
-            s.sendto(msg, (host, port))
-
+            try:
+                s.sendto(msg, (host, port))
+            except:
+                pass
 
 class RedisTransports(object):
     def __init__(self, redis_namespace, redis_urls, hostname, format=None, logger=None):
