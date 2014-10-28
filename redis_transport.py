@@ -49,7 +49,7 @@ class BaseTransport(object):
             return '[{0}] [{1}] {2}'.format(data['@source_host'], data['@timestamp'], data['@message'])
 
         def nothing_formatter(data):
-            return data
+            return json.loads(json.dumps(data, encoding=ENCODING))
 
         self._formatters['json'] = json.dumps
         self._formatters['raw'] = raw_formatter

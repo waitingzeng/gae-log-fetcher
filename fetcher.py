@@ -197,7 +197,10 @@ class GAEFetchLog(object):
                     f.write('\n'.join([x['line'] for x in lines]))
                     f.close()
 
-                logger.info("Save to redis %s", len(lines))
+                if send_to_es:
+                    logger.info("Save to es %s", len(lines))
+                else:
+                    logger.info("Save to redis %s", len(lines))
                 # end interval
             except KeyboardInterrupt:
                 return
