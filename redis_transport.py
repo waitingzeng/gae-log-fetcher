@@ -6,6 +6,8 @@ import traceback
 import time
 import urlparse
 import random
+from elasticsearch import Elasticsearch
+from elasticsearch import helpers
 ENCODING = "ISO-8859-1"
 
 
@@ -46,11 +48,14 @@ class BaseTransport(object):
         def string_formatter(data):
             return '[{0}] [{1}] {2}'.format(data['@source_host'], data['@timestamp'], data['@message'])
 
+        def nothing_formatter(data):
+            return data
+
         self._formatters['json'] = json.dumps
         self._formatters['raw'] = raw_formatter
         self._formatters['rawjson'] = rawjson_formatter
         self._formatters['string'] = string_formatter
-
+        self._formatters['nothing'] = nothing_formatter
   
     def callback(self, filename, lines):
         """Processes a set of lines for a filename"""
@@ -120,6 +125,7 @@ class RedisTransport(BaseTransport):
         self._is_valid = False
 
         self._connect()
+        self.es = Elasticsearch()
 
     def _connect(self):
         wait = -1
@@ -166,6 +172,20 @@ class RedisTransport(BaseTransport):
             traceback.print_exc()
             raise TransportException(str(e))
 
+    def send_to_es(self, filename, lines, **kwargs):
+        actions = []
+        for line in lines:
+            msg = self.format(filename, **line)
+
+            action = {
+                "_index": "test-logstash-%s" % msg['@timestamp'].split('T')[0],
+                "_type": msg['@type'],
+                "_source": msg
+            }
+
+            actions.append(action)
+        helpers.bulk(self.es, actions)
+
 
 class RedisTransports(object):
     def __init__(self, redis_namespace, redis_urls, hostname, format=None, logger=None):
@@ -177,3 +197,8 @@ class RedisTransports(object):
         trans = random.choice(self._trans)
 
         return trans.callback(*args, **kwargs)
+
+    def send_to_es(self, *args, **kwargs):
+        trans = random.choice(self._trans)
+
+        return trans.send_to_es(*args, **kwargs)
