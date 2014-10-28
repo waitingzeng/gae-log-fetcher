@@ -63,6 +63,7 @@ class BaseTransport(object):
                 'instance_id': 'gae',
                 'instance_name': 'gae'
                 })
+            return json.dumps(data, encoding=ENCODING)
 
         self._formatters['json'] = json.dumps
         self._formatters['raw'] = raw_formatter
@@ -204,7 +205,7 @@ class RedisTransport(BaseTransport):
         s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         for line in lines:
             msg = self.format(filename, format="logcenter", **line)
-            s.sendto(s, (host, port))
+            s.sendto(msg, (host, port))
 
 
 class RedisTransports(object):
