@@ -89,16 +89,24 @@ def save_recovery_log(timestamp):
     a.write(str(timestamp))
     a.close()
 
+environments = {
+    'agent8-backend' : 'production',
+    'agent8-backend-staging': 'staging',
+    'agent8-backend-eng': 'engineering',
+}
+
 class GAEFetchLog(object):
 
-    def __init__(self, username, password, app_name, redis_namespace, redis_urls):
+    def __init__(self, username, password, app_name, redis_namespace, redis_urls, udp_host, udp_port):
         self.username = username
         self.password = password
         self.app_name = app_name
         self.redis_urls = redis_urls
         self.redis_namespace = redis_namespace
+        self.udp_host = udp_host
+        self.udp_port = udp_port
         self.version_ids = ['1']
-        self.redis_transports = RedisTransports(redis_namespace,  self.redis_urls, hostname='%s.appspot.com' % app_name, format='nothing', logger=logger)
+        self.redis_transports = RedisTransports(redis_namespace,  self.redis_urls, hostname='%s.appspot.com' % app_name, format='raw', logger=logger)
 
     def _prepare_json(self, req_log):
         """Prepare JSON in logstash json_event format"""
@@ -108,6 +116,9 @@ class GAEFetchLog(object):
         data['fields']['response'] = req_log.status
         data['fields']['latency_ms'] = req_log.latency
         data['fields']['timestamp'] = req_log.end_time
+        data['fields']['environment'] = environments[self.app_name]
+
+
         
         # Timestamp - this helps if events are not coming in chronological
         # order
@@ -133,7 +144,7 @@ class GAEFetchLog(object):
 
         return data
 
-    def fetch_logs(self, time_period, save_to_file=False, send_to_es=False):
+    def fetch_logs(self, time_period, save_to_file=False, send_to_es=False, send_to_udp=False):
         f = lambda: (self.username, self.password)
 
         try:
@@ -192,6 +203,9 @@ class GAEFetchLog(object):
                     else:
                         self.redis_transports.callback(dest, lines)
 
+                    if send_to_udp:
+                        self.redis_transports.send_to_udp(dest, lines, self.udp_host, self.udp_port)
+
                 if save_to_file:
                     f = file(os.path.join(save_to_file, dest), 'a')
                     f.write('\n'.join([x['line'] for x in lines]))
@@ -235,6 +249,10 @@ if __name__ == '__main__':
     parser.add_argument("--send_to_es",
                         help="dir send to es", action='store_true')
 
+    parser.add_argument("--send_to_udp",
+                        help="dir send to es", action='store_true')
+
+
     parser.add_argument("--gae_config",
                         help="Config file for GAE user, pass, app. If not specified, it looks for fetcher.conf")
 
@@ -255,6 +273,8 @@ if __name__ == '__main__':
     app_name = config.get('GAE', 'app_name')
     redis_urls = config.get('REDIS', 'redis_urls')
     redis_namespace = config.get('REDIS', 'namespace')
+    udp_host = config.get('UDP', 'host')
+    udp_port = int(config.get('UDP', 'port'))
 
     redis_urls = redis_urls.split(',')
     start_timestamp = args.start_timestamp and int(args.start_timestamp) or None
@@ -266,5 +286,5 @@ if __name__ == '__main__':
             except:
                 pass
 
-    gae_fetch_app = GAEFetchLog(username, password, app_name, redis_namespace, redis_urls)
-    gae_fetch_app.fetch_logs(get_time_period(start_timestamp, end_timestamp), save_to_file=args.save_to_file, send_to_es=args.send_to_es)
+    gae_fetch_app = GAEFetchLog(username, password, app_name, redis_namespace, redis_urls, udp_host, udp_port)
+    gae_fetch_app.fetch_logs(get_time_period(start_timestamp, end_timestamp), save_to_file=args.save_to_file, send_to_es=args.send_to_es, send_to_udp=args.send_to_udp)

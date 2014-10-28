@@ -8,6 +8,7 @@ import urlparse
 import random
 from elasticsearch import Elasticsearch
 from elasticsearch import helpers
+import socket
 ENCODING = "ISO-8859-1"
 
 
@@ -48,14 +49,27 @@ class BaseTransport(object):
         def string_formatter(data):
             return '[{0}] [{1}] {2}'.format(data['@source_host'], data['@timestamp'], data['@message'])
 
-        def nothing_formatter(data):
-            return json.loads(json.dumps(data, encoding=ENCODING))
+        def logcenter_formatter(data):
+            timestamp = msg['@fields']['timestamp']
+            log_time = datetime.datetime.fromtimestamp(timestamp)
+            data['@fields'].update({
+                'log_line' : [0],
+                'log_source': [data['@source_path']],
+                'level': ['INFO'],
+                'date': [log_time.strftime('%Y-%m-%d')],
+                'hour': [log_time.hour],
+                'component': 'gae',
+                'type': data['@type'],
+                'instance_id': 'gae',
+                'instance_name': 'gae'
+                })
 
         self._formatters['json'] = json.dumps
         self._formatters['raw'] = raw_formatter
         self._formatters['rawjson'] = rawjson_formatter
         self._formatters['string'] = string_formatter
-        self._formatters['nothing'] = nothing_formatter
+        self._formatters['logcenter'] = logcenter_formatter
+              
   
     def callback(self, filename, lines):
         """Processes a set of lines for a filename"""
@@ -175,7 +189,7 @@ class RedisTransport(BaseTransport):
     def send_to_es(self, filename, lines, **kwargs):
         actions = []
         for line in lines:
-            msg = self.format(filename, **line)
+            msg = json.loads(self.format(filename, **line))
 
             action = {
                 "_index": "logstash-%s" % msg['@timestamp'].split('T')[0],
@@ -185,6 +199,12 @@ class RedisTransport(BaseTransport):
 
             actions.append(action)
         helpers.bulk(self.es, actions)
+
+    def send_to_udp(self, filename, lines, host, port, **kwargs):
+        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        for line in lines:
+            msg = self.format(filename, format="logcenter", **line)
+            s.sendto(s, (host, port))
 
 
 class RedisTransports(object):
@@ -202,3 +222,8 @@ class RedisTransports(object):
         trans = random.choice(self._trans)
 
         return trans.send_to_es(*args, **kwargs)
+
+    def send_to_udp(self, *args, **kwargs):
+        trans = random.choice(self._trans)
+
+        return trans.send_to_udp(*args, **kwargs)

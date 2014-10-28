@@ -3,6 +3,12 @@ username = <%= @email %>
 password = <%= @password %>
 app_name = <%= @gae_app_fqdn %>
 
+
 [REDIS]
 redis_urls = <%= @redis_urls %>
 namespace = <%= @namespace %>
+
+
+[UDP]
+host = <%=node['logstash']['agent']['logcenter_host']%>
+port = 6378
