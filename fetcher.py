@@ -133,7 +133,7 @@ class GAEFetchLog(object):
 
         return data
 
-    def fetch_logs(self, time_period, save_to_file=False):
+    def fetch_logs(self, time_period, save_to_file=False, send_to_es=False):
         f = lambda: (self.username, self.password)
 
         try:
@@ -187,7 +187,10 @@ class GAEFetchLog(object):
 
                     # end fetch
                 if lines:
-                    self.redis_transports.send_to_es(dest, lines)
+                    if send_to_es:
+                        self.redis_transports.send_to_es(dest, lines)
+                    else:
+                        self.redis_transports.callback(dest, lines)
 
                 if save_to_file:
                     f = file(os.path.join(save_to_file, dest), 'a')
@@ -222,7 +225,10 @@ if __name__ == '__main__':
                         help="default is now")
 
     parser.add_argument("--save_to_file",
-                        help="only save to file")
+                        help="save to file also")
+
+    parser.add_argument("--send_to_es",
+                        help="dir send to es")
 
     parser.add_argument("--gae_config",
                         help="Config file for GAE user, pass, app. If not specified, it looks for fetcher.conf")
@@ -256,4 +262,4 @@ if __name__ == '__main__':
                 pass
 
     gae_fetch_app = GAEFetchLog(username, password, app_name, redis_namespace, redis_urls)
-    gae_fetch_app.fetch_logs(get_time_period(start_timestamp, end_timestamp), save_to_file=args.save_to_file)
+    gae_fetch_app.fetch_logs(get_time_period(start_timestamp, end_timestamp), save_to_file=args.save_to_file, send_to_es=args.send_to_es)
