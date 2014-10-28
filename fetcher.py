@@ -199,6 +199,8 @@ class GAEFetchLog(object):
 
                 logger.info("Save to redis %s", len(lines))
                 # end interval
+            except KeyboardInterrupt:
+                return
             except:
                 logger.error("Something went wrong", exc_info=True)
                 continue
@@ -228,7 +230,7 @@ if __name__ == '__main__':
                         help="save to file also")
 
     parser.add_argument("--send_to_es",
-                        help="dir send to es")
+                        help="dir send to es", action='store_true')
 
     parser.add_argument("--gae_config",
                         help="Config file for GAE user, pass, app. If not specified, it looks for fetcher.conf")

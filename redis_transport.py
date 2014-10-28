@@ -178,7 +178,7 @@ class RedisTransport(BaseTransport):
             msg = self.format(filename, **line)
 
             action = {
-                "_index": "test-logstash-%s" % msg['@timestamp'].split('T')[0],
+                "_index": "logstash-%s" % msg['@timestamp'].split('T')[0],
                 "_type": msg['@type'],
                 "_source": msg
             }
