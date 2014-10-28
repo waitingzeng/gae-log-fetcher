@@ -50,7 +50,7 @@ class BaseTransport(object):
             return '[{0}] [{1}] {2}'.format(data['@source_host'], data['@timestamp'], data['@message'])
 
         def logcenter_formatter(data):
-            timestamp = msg['@fields']['timestamp']
+            timestamp = data['@fields']['timestamp']
             log_time = datetime.datetime.fromtimestamp(timestamp)
             data['@fields'].update({
                 'log_line' : [0],
