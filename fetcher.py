@@ -110,7 +110,7 @@ class GAEFetchLog(object):
         
         self.redis_transports = RedisTransports(redis_namespace,  self.redis_urls, hostname='%s.appspot.com' % app_name, format='raw', logger=logger)
 
-    def send_to_udp(self, line):
+    def send_to_udp(self, filename, line):
         msg = self.redis_transports.format(filename, format="logcenter", **line)
         try:
             s.sendto(msg, (self.udp_host, self.udp_port))
@@ -118,7 +118,7 @@ class GAEFetchLog(object):
             pass
 
 
-    def _prepare_json(self, req_log):
+    def _prepare_json(self, filename, req_log):
         """Prepare JSON in logstash json_event format"""
         data = {'fields': {}}
         data['type'] = '%s-gae' % self.app_name
@@ -138,7 +138,7 @@ class GAEFetchLog(object):
         # processing APP Logs
         msg = req_log.combined
         data['line'] = msg
-        self.send_to_udp(data)
+        self.send_to_udp(filename, data)
 
         if len(req_log.app_logs) > 0:
             app_log_msgs = []
@@ -149,7 +149,7 @@ class GAEFetchLog(object):
                 app_log_msg = "%s %s %s" % (t.isoformat(), l, app_log.message)
                 data['line'] = app_log_msg
                 
-                self.send_to_udp(data)
+                self.send_to_udp(filename, data)
 
                 app_log_msgs.append(app_log_msg)
 
@@ -206,7 +206,7 @@ class GAEFetchLog(object):
 
                     logger.debug("Retrieved - %s" % req_log.combined)
 
-                    lines.append(self._prepare_json(req_log))
+                    lines.append(self._prepare_json(dest, req_log))
 
                     i = i + 1
                     if i % 100 == 0:
