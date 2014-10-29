@@ -119,7 +119,6 @@ class GAEFetchLog(object):
         data['fields']['environment'] = environments[self.app_name]
 
 
-        
         # Timestamp - this helps if events are not coming in chronological
         # order
         t = datetime.fromtimestamp(req_log.end_time)

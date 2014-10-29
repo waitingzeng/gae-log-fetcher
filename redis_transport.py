@@ -57,7 +57,7 @@ class BaseTransport(object):
                 'log_source': [data['@source_path']],
                 'level': ['INFO'],
                 'date': [log_time.strftime('%Y-%m-%d')],
-                'hour': [log_time.hour],
+                'hour': ['%02d' % log_time.hour],
                 'component': 'gae',
                 'type': data['@type'],
                 'instance_id': 'gae',
