@@ -106,7 +106,17 @@ class GAEFetchLog(object):
         self.udp_host = udp_host
         self.udp_port = udp_port
         self.version_ids = ['1']
+        self.s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        
         self.redis_transports = RedisTransports(redis_namespace,  self.redis_urls, hostname='%s.appspot.com' % app_name, format='raw', logger=logger)
+
+    def send_to_udp(self, line):
+        msg = self.redis_transports.format(filename, format="logcenter", **line)
+        try:
+            s.sendto(msg, (self.udp_host, self.udp_port))
+        except:
+            pass
+
 
     def _prepare_json(self, req_log):
         """Prepare JSON in logstash json_event format"""
@@ -127,14 +137,21 @@ class GAEFetchLog(object):
 
         # processing APP Logs
         msg = req_log.combined
+        data['line'] = msg
+        self.send_to_udp(data)
+
         if len(req_log.app_logs) > 0:
             app_log_msgs = []
             for app_log in req_log.app_logs:
                 t = datetime.fromtimestamp(app_log.time)
                 t = t.replace(tzinfo=GAE_TZ)
                 l = _get_level(app_log.level)
-                app_log_msgs.append("%s %s %s"
-                                    % (t.isoformat(), l, app_log.message))
+                app_log_msg = "%s %s %s" % (t.isoformat(), l, app_log.message)
+                data['line'] = app_log_msg
+                
+                self.send_to_udp(data)
+
+                app_log_msgs.append(app_log_msg)
 
             # The new lines give it more readability in Kibana
             msg = msg + "\n\n" + "\n".join(app_log_msgs)
@@ -202,8 +219,8 @@ class GAEFetchLog(object):
                     else:
                         self.redis_transports.callback(dest, lines)
 
-                    if send_to_udp:
-                        self.redis_transports.send_to_udp(dest, lines, self.udp_host, self.udp_port)
+                    #if send_to_udp:
+                    #    self.redis_transports.send_to_udp(dest, lines, self.udp_host, self.udp_port)
 
                 if save_to_file:
                     f = file(os.path.join(save_to_file, dest), 'a')
