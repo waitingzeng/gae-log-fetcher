@@ -230,3 +230,7 @@ class RedisTransports(object):
         trans = random.choice(self._trans)
 
         return trans.send_to_udp(*args, **kwargs)
+
+    def format(self, *args, **kwargs):
+        trans = random.choice(self._trans)
+        return trans.format(*args, **kwargs)
