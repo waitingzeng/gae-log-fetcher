@@ -193,7 +193,7 @@ class RedisTransport(BaseTransport):
             msg = json.loads(self.format(filename, **line))
 
             action = {
-                "_index": "logstash-%s" % msg['@timestamp'].split('T')[0],
+                "_index": "logstash-%s" % msg['@timestamp'].split('T')[0].replace('-', '.'),
                 "_type": msg['@type'],
                 "_source": msg
             }
