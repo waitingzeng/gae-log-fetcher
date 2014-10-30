@@ -54,7 +54,7 @@ class BaseTransport(object):
             log_time = datetime.datetime.fromtimestamp(timestamp)
             data['@fields'].update({
                 'log_line' : [0],
-                'log_source': [data['@source_path']],
+                'log_source': ['gae'],
                 'level': ['INFO'],
                 'date': [log_time.strftime('%Y-%m-%d')],
                 'hour': ['%02d' % log_time.hour],
