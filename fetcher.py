@@ -9,6 +9,7 @@ import ConfigParser
 from dateutil import tz
 from datetime import datetime
 from datetime import timedelta
+import copy
 
 from google.appengine.ext.remote_api import remote_api_stub
 from google.appengine.api.logservice import logservice
@@ -111,9 +112,10 @@ class GAEFetchLog(object):
         self.redis_transports = RedisTransports(redis_namespace,  self.redis_urls, hostname='%s.appspot.com' % app_name, format='raw', logger=logger)
 
     def send_to_udp(self, filename, line):
+        line = copy.deepcopy(line)
         msg = self.redis_transports.format(filename, format="logcenter", **line)
         try:
-            s.sendto(msg, (self.udp_host, self.udp_port))
+            self.s.sendto(msg, (self.udp_host, self.udp_port))
         except:
             pass
 
