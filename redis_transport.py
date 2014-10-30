@@ -200,7 +200,7 @@ class RedisTransport(BaseTransport):
             }
 
             actions.append(action)
-        helpers.bulk(self.es, actions, chunk_size=10, params={'request_timeout': 90})
+        helpers.bulk(self.es, actions, chunk_size=100, params={'request_timeout': 90})
 
     def send_to_udp(self, filename, lines, host, port, **kwargs):
         s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
