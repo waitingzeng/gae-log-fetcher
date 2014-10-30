@@ -85,13 +85,13 @@ class BaseTransport(object):
         timestamp = self.get_timestamp(**kwargs)
         #print timestamp, line
         return self._formatters[formatter]({
-            '@source': 'file://{0}'.format(filename),
+            #'@source': 'file://{0}'.format(filename),
             '@type': kwargs.get('type'),
             '@tags': kwargs.get('tags'),
             '@fields': kwargs.get('fields'),
             '@timestamp': timestamp,
-            '@source_host': self._current_host,
-            '@source_path': filename,
+            #'@source_host': self._current_host,
+            #'@source_path': filename,
             '@message': line,
         })
 
@@ -195,6 +195,7 @@ class RedisTransport(BaseTransport):
             action = {
                 "_index": "logstash-%s" % msg['@timestamp'].split('T')[0].replace('-', '.'),
                 "_type": msg['@type'],
+                "_version": "1",
                 "_source": msg
             }
 
