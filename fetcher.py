@@ -40,6 +40,7 @@ logger = logging.getLogger()
 
 last_offset = None
 last_time_period = None
+close_save_recovery_log = False
 
 ENCODING = "ISO-8859-1"
 
@@ -86,6 +87,8 @@ def _split_time_period(start, end=None, interval_s=10):
             time.sleep(2 * interval_s)
 
 def save_recovery_log(timestamp):
+    if close_save_recovery_log:
+        return
     a = file(RECOVERY_LOG, 'w')
     a.write(str(timestamp))
     a.close()
@@ -139,8 +142,8 @@ class GAEFetchLog(object):
 
         # processing APP Logs
         msg = req_log.combined
-        data['line'] = msg
-        self.send_to_udp(filename, data)
+        #data['line'] = msg
+        #self.send_to_udp(filename, data)
 
         if len(req_log.app_logs) > 0:
             app_log_msgs = []
@@ -149,9 +152,9 @@ class GAEFetchLog(object):
                 t = t.replace(tzinfo=GAE_TZ)
                 l = _get_level(app_log.level)
                 app_log_msg = "%s %s %s" % (t.isoformat(), l, app_log.message)
-                data['line'] = app_log_msg
+                #data['line'] = app_log_msg
                 
-                self.send_to_udp(filename, data)
+                #self.send_to_udp(filename, data)
 
                 app_log_msgs.append(app_log_msg)
 
@@ -297,12 +300,17 @@ if __name__ == '__main__':
     redis_urls = redis_urls.split(',')
     start_timestamp = args.start_timestamp and int(args.start_timestamp) or None
     end_timestamp = args.end_timestamp  and int(args.end_timestamp) or None
+
     if not start_timestamp:
         if os.path.exists(RECOVERY_LOG):
             try:
                 start_timestamp = int(file(RECOVERY_LOG).read())
             except:
                 pass
+
+    if start_timestamp and end_timestamp:
+        global close_save_recovery_log
+        close_save_recovery_log = True
 
     gae_fetch_app = GAEFetchLog(username, password, app_name, redis_namespace, redis_urls, udp_host, udp_port)
     gae_fetch_app.fetch_logs(get_time_period(start_timestamp, end_timestamp), save_to_file=args.save_to_file, send_to_es=args.send_to_es, send_to_udp=args.send_to_udp)
