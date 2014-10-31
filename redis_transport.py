@@ -200,7 +200,8 @@ class RedisTransport(BaseTransport):
             }
 
             actions.append(action)
-        logging.info("save to es[index_name: %s, type: %s, doc: %s]", action['_index'], action['_type'], len(actions))
+            logging.info("save to es[index_name: %s, type: %s, doc: %s]", action['_index'], action['_type'], len(msg))
+
         helpers.bulk(self.es, actions, chunk_size=500, params={'request_timeout': 90})
 
     def send_to_udp(self, filename, lines, host, port, **kwargs):
