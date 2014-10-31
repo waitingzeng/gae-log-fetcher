@@ -12,8 +12,6 @@ from elasticsearch import helpers
 import socket
 ENCODING = "ISO-8859-1"
 
-
-
 class TransportException(Exception):
     pass
 
