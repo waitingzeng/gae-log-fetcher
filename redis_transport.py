@@ -200,7 +200,7 @@ class RedisTransport(BaseTransport):
             }
 
             actions.append(action)
-            logging.info("save to es[index_name: %s, type: %s, doc: %s]", action['_index'], action['_type'], len(msg))
+        logging.info("save to es[index_name: %s, type: %s, actins: %s]", action['_index'], action['_type'], len(actions))
 
         helpers.bulk(self.es, actions, chunk_size=500, params={'request_timeout': 90})
 
