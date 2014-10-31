@@ -195,7 +195,8 @@ class GAEFetchLog(object):
         for interval in intervals:
             try:
                 start, end, start_human = interval
-                dest = '%s-%s.log' % (app_name, start_human.strftime('%Y-%m-%d'))
+                index_name = start_human.strftime('%Y-%m-%d')
+                dest = '%s-%s.log' % (app_name, index_name)
 
                 logger.info("Interval : %s - %s %s" % (start, end, start_human))
 
@@ -220,7 +221,7 @@ class GAEFetchLog(object):
                     # end fetch
                 if lines:
                     if send_to_es:
-                        self.redis_transports.send_to_es(dest, lines)
+                        self.redis_transports.send_to_es(index_name, dest, lines)
                     else:
                         self.redis_transports.callback(dest, lines)
 

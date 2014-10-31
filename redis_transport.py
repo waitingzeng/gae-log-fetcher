@@ -187,20 +187,20 @@ class RedisTransport(BaseTransport):
             traceback.print_exc()
             raise TransportException(str(e))
 
-    def send_to_es(self, filename, lines, **kwargs):
+    def send_to_es(self, index_name, filename, lines, **kwargs):
         actions = []
         for line in lines:
             msg = json.loads(self.format(filename, **line))
 
             action = {
-                "_index": "logstash-%s" % msg['@timestamp'].split('T')[0].replace('-', '.'),
+                "_index": "logstash-%s" % index_name,
                 "_type": msg['@type'],
-                "_version": "1",
+                #"_version": "1",
                 "_source": msg
             }
 
             actions.append(action)
-        helpers.bulk(self.es, actions, chunk_size=100, params={'request_timeout': 90})
+        helpers.bulk(self.es, actions, chunk_size=500, params={'request_timeout': 90})
 
     def send_to_udp(self, filename, lines, host, port, **kwargs):
         s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
