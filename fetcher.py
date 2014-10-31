@@ -195,8 +195,9 @@ class GAEFetchLog(object):
         for interval in intervals:
             try:
                 start, end, start_human = interval
-                index_name = start_human.strftime('%Y-%m-%d')
-                dest = '%s-%s.log' % (app_name, index_name)
+                index_name = start_human.strftime('%Y.%m.%d')
+                dest = '%s-%s.log' % (app_name, start_human.strftime('%Y-%m-%d'))
+
 
                 logger.info("Interval : %s - %s %s" % (start, end, start_human))
 
