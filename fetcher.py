@@ -101,9 +101,7 @@ environments = {
 
 class GAEFetchLog(object):
 
-    def __init__(self, username, password, app_name, redis_namespace, redis_urls, udp_host, udp_port):
-        self.username = username
-        self.password = password
+    def __init__(self, app_name, redis_namespace, redis_urls, udp_host, udp_port):
         self.app_name = app_name
         self.redis_urls = redis_urls
         self.redis_namespace = redis_namespace
@@ -168,16 +166,8 @@ class GAEFetchLog(object):
     def fetch_logs(self, time_period, save_to_file=False, send_to_es=False, send_to_udp=False):
         f = lambda: (self.username, self.password)
 
-        try:
-            remote_api_stub.ConfigureRemoteApi(
-                None, '/remote_api', f, self.app_name + '.appspot.com')
-        except ConfigurationError:
-            # Token expired?
-            logger.exception(
-                "Token validation failed. Probably expired. Will retry")
-            remote_api_stub.ConfigureRemoteApi(
-                None, '/remote_api', f, app_name)
-
+        remote_api_stub.ConfigureRemoteApiForOAuth(self.app_name + '.appspot.com', '/remote_api')
+        
         logger.info("Successfully authenticated")
 
         logger.info("Fetching logs from %s to %s (GAE TZ)"
@@ -275,7 +265,6 @@ if __name__ == '__main__':
     parser.add_argument("--send_to_udp",
                         help="dir send to es", action='store_true')
 
-
     parser.add_argument("--gae_config",
                         help="Config file for GAE user, pass, app. If not specified, it looks for fetcher.conf")
 
@@ -291,9 +280,9 @@ if __name__ == '__main__':
     config = ConfigParser.SafeConfigParser()
     config.read(conf)
 
-    username = config.get('GAE', 'username')
-    password = config.get('GAE', 'password')
     app_name = config.get('GAE', 'app_name')
+    os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = '%s.json' % app_name
+
     redis_urls = config.get('REDIS', 'redis_urls')
     redis_namespace = config.get('REDIS', 'namespace')
     udp_host = config.get('UDP', 'host')
@@ -301,7 +290,7 @@ if __name__ == '__main__':
 
     redis_urls = redis_urls.split(',')
     start_timestamp = args.start_timestamp and int(args.start_timestamp) or None
-    end_timestamp = args.end_timestamp  and int(args.end_timestamp) or None
+    end_timestamp = args.end_timestamp and int(args.end_timestamp) or None
 
     if not start_timestamp:
         if os.path.exists(RECOVERY_LOG):
@@ -314,5 +303,5 @@ if __name__ == '__main__':
         global close_save_recovery_log
         close_save_recovery_log = True
 
-    gae_fetch_app = GAEFetchLog(username, password, app_name, redis_namespace, redis_urls, udp_host, udp_port)
+    gae_fetch_app = GAEFetchLog(app_name, redis_namespace, redis_urls, udp_host, udp_port)
     gae_fetch_app.fetch_logs(get_time_period(start_timestamp, end_timestamp), save_to_file=args.save_to_file, send_to_es=args.send_to_es, send_to_udp=args.send_to_udp)
