@@ -29,7 +29,7 @@ class FetchLog(object):
         for msg in lines:
             action = {
                 "_index": "logstash-%s" % index_name,
-                "_type": msg['@fields']['component'] + '-' + msg['@type'],
+                "_type": msg['@fields']['component'][0] + '-' + msg['@type'],
                 #"_version": "1",
                 "_source": msg
             }
