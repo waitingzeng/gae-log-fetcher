@@ -29,7 +29,7 @@ class FetchLog(object):
         for msg in lines:
             action = {
                 "_index": "logstash-%s" % index_name,
-                "_type": msg['@type'],
+                "_type": msg['@fields']['component'] + '-' + msg['@type'],
                 #"_version": "1",
                 "_source": msg
             }
@@ -54,8 +54,8 @@ class FetchLog(object):
 
                 lines.append(log_data)
 
-                if lines and len(lines) >= 100:
-                    index_name = log_data['@fields']['date'].replace('-', '.')
+                if lines:
+                    index_name = log_data['@fields']['date'][0].replace('-', '.')
                     self.send_to_es(index_name, lines)
                     lines = []
 
