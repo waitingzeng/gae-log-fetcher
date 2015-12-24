@@ -41,10 +41,10 @@ class FetchLog(object):
 
     def run(self):
         lines = []
-        self._redis = redis.StrictRedis(host='127.0.0.1', socket_timeout=10)
+        self._redis = redis.Redis(host='127.0.0.1')
         while True:
             try:
-                key, log_data = self._redis.brpop('ec2_easilydo_log', timeout=0)
+                key, log_data = self._redis.brpop('ec2_easilydo_log', 0)
                 if not log_data:
                     logging.info("not log in queue, sleep 1")
                     time.sleep(1)
