@@ -166,7 +166,6 @@ class GAEFetchLog(object):
     def fetch_logs(self, time_period, save_to_file=False, send_to_es=False, send_to_udp=False):
         f = lambda: (self.username, self.password)
 
-        remote_api_stub.ConfigureRemoteApiForOAuth(self.app_name + '.appspot.com', '/remote_api')
         
         logger.info("Successfully authenticated")
 
@@ -194,6 +193,8 @@ class GAEFetchLog(object):
                 save_recovery_log(start)
                 lines = []
                 offset = None
+                remote_api_stub.ConfigureRemoteApiForOAuth(self.app_name + '.appspot.com', '/remote_api')
+            
                 for req_log in logservice.fetch(end_time=end,
                                                 start_time=start,
                                                 minimum_log_level=logservice.LOG_LEVEL_INFO,
